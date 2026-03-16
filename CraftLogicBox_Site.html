@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CraftLogicBox | Екосистема контролерів</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080f;
+  --border:rgba(255, 255, 255, 0.15);
+  --surface:rgba(20, 25, 35, 0.15);
+  
+  --green:#34d399; --cyan:#22d3ee; --orange:#fb923c; --purple:#a78bfa; --red:#f43f5e;
+  --text:#cbd5e1; --text-dim:#94a3b8; --white:#ffffff;
+  --mono:'Share Tech Mono',monospace; --head:'Inter',sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;outline:none;}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--head);
+  min-height:100vh;overflow-x:hidden;line-height:1.5;
+  position:relative; display:flex; flex-direction:column;
+}
+
+/* ── ВІДЕО-ФОН ── */
+.video-bg {
+  position: fixed; top: 50%; left: 50%; min-width: 100%; min-height: 100%;
+  width: auto; height: auto; z-index: -2; transform: translate(-50%, -50%); object-fit: cover;
+}
+.video-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(7, 8, 15, 0.35); z-index: -1; 
+}
+
+/* ── ШАПКА ── */
+header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 40px; border-bottom:1px solid rgba(255,255,255,0.05);
+  background:rgba(7, 8, 15, 0.4); backdrop-filter:blur(10px);
+}
+.logo-container{display:flex;align-items:center;gap:12px;}
+.logo-svg{width:40px;height:40px;}
+.logo-text{font-size:18px;font-weight:700;color:var(--white);letter-spacing:-0.5px;line-height:1;}
+.logo-text span{background:linear-gradient(90deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;margin-top:4px;}
+.nav-status{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:2px;border:1px solid rgba(34,211,238,0.3);padding:6px 12px;border-radius:20px;background:rgba(34,211,238,0.05); backdrop-filter:blur(5px);}
+
+/* ── ГОЛОВНИЙ ТЕКСТ ── */
+.hero{text-align:center;padding:50px 20px 30px; flex-grow:1; display:flex; flex-direction:column; justify-content:center;}
+.hero h1{font-size:clamp(30px, 4vw, 48px);color:var(--white);font-weight:700;margin-bottom:12px;line-height:1.2; text-shadow: 0 4px 20px rgba(0,0,0,0.8);}
+.hero p{font-size:15px;color:var(--white);max-width:600px;margin:0 auto; text-shadow: 0 2px 10px rgba(0,0,0,0.8);}
+
+/* ── ВІТРИНА ПРОЄКТІВ ── */
+.showcase{
+  width:100%; max-width:1600px; margin:0 auto; padding:20px 30px 50px;
+  display:grid; grid-template-columns:repeat(5, 1fr); gap:16px;
+}
+
+.p-card{
+  background:var(--surface); border:1px solid var(--border);border-radius:14px;
+  padding:20px; position:relative;overflow:hidden; backdrop-filter:blur(8px); 
+  display:flex;flex-direction:column;transition:all 0.4s; cursor:pointer; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.p-card.c-green  { --acc:var(--green); } .p-card.c-cyan   { --acc:var(--cyan); }
+.p-card.c-purple { --acc:var(--purple); } .p-card.c-orange { --acc:var(--orange); } .p-card.c-red    { --acc:var(--red); }
+
+.p-card::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:2px;
+  background:linear-gradient(90deg, transparent, var(--acc), transparent); opacity:0.6;transition:opacity 0.4s;
+}
+.p-card:hover{
+  transform:translateY(-8px);border-color:rgba(255,255,255,0.3);
+  background:rgba(255,255,255,0.08); backdrop-filter:blur(12px); 
+  box-shadow:0 15px 40px rgba(0,0,0,0.7), 0 0 25px calc(var(--acc) - #000000c0); z-index: 10;
+}
+.p-card:hover::before{opacity:1;}
+.p-icon{font-size:32px;margin-bottom:12px;line-height:1;filter:drop-shadow(0 0 10px calc(var(--acc) - #000000aa));}
+.p-title{font-size:17px;font-weight:700;color:var(--white);margin-bottom:8px;letter-spacing:-0.2px; text-shadow: 0 2px 5px rgba(0,0,0,0.5);}
+.p-desc{font-size:12px;color:var(--text-dim);margin-bottom:20px;flex-grow:1;line-height:1.5; text-shadow: 0 1px 3px rgba(0,0,0,0.8);}
+
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:20px;}
+.tag{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);color:var(--white);}
+.p-btn{width:100%;padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:rgba(0,0,0,0.5);color:var(--white);font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;transition:all 0.3s; cursor:pointer;}
+.p-card:hover .p-btn{background:var(--acc);color:#000;border-color:var(--acc);font-weight:700;box-shadow:0 0 15px calc(var(--acc) - #00000080);}
+
+/* ── МОДАЛЬНЕ ВІКНО (ІНТЕРФЕЙС ПЛАТИ) ── */
+.modal-overlay {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.7); backdrop-filter:blur(15px);
+  z-index:1000; display:flex; justify-content:center; align-items:center;
+  opacity:0; pointer-events:none; transition:opacity 0.4s; padding:20px;
+}
+.modal-overlay.active { opacity:1; pointer-events:auto; }
+
+.modal-content {
+  background:rgba(10, 14, 20, 0.7); border:1px solid rgba(255,255,255,0.1);
+  border-radius:16px; width:100%; max-width:800px; max-height:90vh; overflow-y:auto;
+  padding:30px; position:relative; transform:translateY(30px); transition:transform 0.4s;
+  box-shadow:0 20px 60px rgba(0,0,0,0.8);
+}
+.modal-overlay.active .modal-content { transform:translateY(0); }
+
+.modal-close {
+  position:absolute; top:20px; right:20px; background:none; border:none;
+  color:var(--text-dim); font-size:28px; cursor:pointer; transition:color 0.2s;
+}
+.modal-close:hover { color:var(--red); }
+
+/* Стилі всередині модалки (Сенсори та Реле) */
+.m-title { font-size:24px; color:var(--white); margin-bottom:5px; display:flex; align-items:center; gap:10px;}
+.m-title span { font-size: 28px; filter: drop-shadow(0 0 10px currentColor); }
+.m-sub { font-family:var(--mono); font-size:11px; color:var(--text-dim); letter-spacing:2px; margin-bottom:24px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:15px;}
+.m-desc { font-size:14px; color:var(--text); line-height:1.6; margin-top:30px; padding:15px; background:rgba(255,255,255,0.03); border-radius:8px; border-left:3px solid var(--acc);}
+
+.stit{font-family:var(--mono);font-size:10px;color:var(--text-dim);letter-spacing:3px;text-transform:uppercase;margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
+.stit::before{content:'';width:20px;height:1px;background:var(--acc);}
+
+/* Сенсори */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:20px;}
+.sc{background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:15px; display:flex;flex-direction:column;justify-content:space-between;min-height:100px;}
+.sico{font-size:22px;margin-bottom:8px;}
+.sval{font-family:var(--mono);font-size:28px;color:var(--white); text-shadow:0 0 15px rgba(255,255,255,0.2);}
+.sval.glow{color:var(--acc); text-shadow:0 0 15px var(--acc);}
+.sunit{font-size:12px;color:var(--text-dim);}
+.slbl{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-top:6px;}
+
+/* Реле */
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;}
+.rc{background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:15px; display:flex; align-items:center; gap:15px;}
+.rname{font-size:15px;font-weight:600;color:var(--white);flex:1;}
+.rstatus{font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-top:3px;letter-spacing:1px;}
+.rstatus.on{color:var(--green);}
+
+/* Тумблер */
+.tog{position:relative;display:inline-block;width:46px;height:24px;flex-shrink:0;}
+.tog input{opacity:0;width:0;height:0;}
+.tsl{position:absolute;inset:0;cursor:pointer;border-radius:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);transition:.3s;}
+.tsl:before{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:var(--text-dim);border-radius:50%;transition:.3s;box-shadow:0 2px 5px rgba(0,0,0,0.5);}
+input:checked+.tsl{background:var(--acc);border-color:transparent;}
+input:checked+.tsl:before{transform:translateX(22px);background:#fff;}
+
+/* Адаптивність */
+@media(max-width:1200px){ .showcase { grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); } }
+@media(max-width:768px){ header{padding:16px 20px;} .showcase { padding: 10px 20px 40px; } }
+/* Кастомний скролбар для модалки */
+.modal-content::-webkit-scrollbar { width: 8px; }
+.modal-content::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+.modal-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+  <video autoplay loop muted playsinline class="video-bg">
+    <source src="showcase.mp4" type="video/mp4">
+  </video>
+  <div class="video-overlay"></div>
+
+  <header>
+    <div class="logo-container">
+      <svg class="logo-svg" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="overflow:visible;">
+        <defs>
+          <linearGradient id="cubeG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1e1b4b"/><stop offset="100%" style="stop-color:#0f172a"/></linearGradient>
+          <linearGradient id="tealG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#22d3ee"/><stop offset="100%" style="stop-color:#a78bfa"/></linearGradient>
+        </defs>
+        <g style="transform-origin:40px 44px;animation:logoRock 3.5s ease-in-out infinite;">
+          <rect x="16" y="29" width="39" height="35" rx="3" fill="url(#cubeG)" stroke="rgba(167,139,250,0.5)" stroke-width="1"/>
+          <polygon points="16,29 36,19 65,19 65,29 36,39" fill="#1a1040" stroke="rgba(34,211,238,0.4)" stroke-width="1"/>
+          <polygon points="55,29 65,19 65,64 55,64" fill="#12082e" stroke="rgba(167,139,250,0.3)" stroke-width="1"/>
+          <circle cx="30" cy="46" r="8" fill="#07080f" stroke="#22d3ee" stroke-width="1.2"/>
+          <circle cx="48" cy="46" r="8" fill="#07080f" stroke="#a78bfa" stroke-width="1.2"/>
+          <path d="M36 19L31 8" stroke="url(#tealG)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M46 19L51 8" stroke="url(#tealG)" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+        <style>@keyframes logoRock{0%,100%{transform:rotate(0deg) translateY(0);}25%{transform:rotate(-2deg) translateY(-2px);}60%{transform:rotate(1.5deg) translateY(-3px);}80%{transform:rotate(-0.8deg) translateY(-1px);}}</style>
+      </svg>
+      <div class="logo-text">Craft<span>LogicBox</span><div class="logo-sub">ECOSYSTEM HUB</div></div>
+    </div>
+    <div class="nav-status">ОБЕРІТЬ ПРОЄКТ</div>
+  </header>
+
+  <section class="hero">
+    <h1>Платформа автоматизації</h1>
+    <p>5 спеціалізованих рішень. Натисніть на картку, щоб переглянути інтерфейс пристрою в реальному часі.</p>
+  </section>
+
+  <section class="showcase">
+    <div class="p-card c-green" onclick="openModal('greenhouse')">
+      <div class="p-icon">🌱</div><div class="p-title">GreenHouse Control</div>
+      <div class="p-desc">Базова прошивка для теплиць. Мікроклімат, вологість ґрунту та крапельний полив.</div>
+      <div class="tags"><span class="tag">DHT22</span><span class="tag">ДАТЧИК ҐРУНТУ</span></div>
+      <button class="p-btn">Відкрити інтерфейс</button>
+    </div>
+
+    <div class="p-card c-cyan" onclick="openModal('hydro')">
+      <div class="p-icon">💧</div><div class="p-title">AquaLogic Hub</div>
+      <div class="p-desc">Контроль температури розчину, рівня води та циклічне керування насосами.</div>
+      <div class="tags"><span class="tag">DS18B20</span><span class="tag">РІВЕНЬ ВОДИ</span></div>
+      <button class="p-btn">Відкрити інтерфейс</button>
+    </div>
+
+    <div class="p-card c-purple" onclick="openModal('mushrooms')">
+      <div class="p-icon">🍄</div><div class="p-title">MycoControl Node</div>
+      <div class="p-desc">Керування камерою для грибів. Ультразвукове зволоження, вентиляція СО2.</div>
+      <div class="tags"><span class="tag">ВЕНТИЛЯЦІЯ СО2</span><span class="tag">ЗВОЛОЖЕННЯ</span></div>
+      <button class="p-btn">Відкрити інтерфейс</button>
+    </div>
+
+    <div class="p-card c-orange" onclick="openModal('quail')">
+      <div class="p-icon">🐣</div><div class="p-title">AvianCare Core</div>
+      <div class="p-desc">Підтримка температури в брудері, контроль вологості та освітлення (день/ніч).</div>
+      <div class="tags"><span class="tag">ОБІГРІВ</span><span class="tag">ОСВІТЛЕННЯ</span></div>
+      <button class="p-btn">Відкрити інтерфейс</button>
+    </div>
+
+    <div class="p-card c-red" onclick="openModal('power')">
+      <div class="p-icon">⚡</div><div class="p-title">PowerNode Matrix</div>
+      <div class="p-desc">Багатоденні розклади, інтервальні таймери та моніторинг електроенергії.</div>
+      <div class="tags"><span class="tag">ТАЙМЕРИ</span><span class="tag">РОЗКЛАДИ RTC</span></div>
+      <button class="p-btn">Відкрити інтерфейс</button>
+    </div>
+  </section>
+
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-content" id="modalContent" style="--acc: var(--green);">
+      <button class="modal-close" onclick="closeModal(event, true)">&times;</button>
+      
+      <div id="m-header"></div>
+
+      <div class="stit">СЕНСОРИ В РЕАЛЬНОМУ ЧАСІ</div>
+      <div class="sgrid" id="m-sensors"></div>
+
+      <div class="stit">БЛОК РЕЛЕ</div>
+      <div class="rgrid" id="m-relays"></div>
+
+      <div class="m-desc" id="m-desc-text"></div>
+    </div>
+  </div>
+
+  <script>
+    // База даних для всіх 5 проєктів
+    const projectData = {
+      greenhouse: {
+        title: "GreenHouse Control", icon: "🌱", color: "var(--green)", version: "v7.4 Soil Edition",
+        desc: "Цей контролер забезпечує ідеальний мікроклімат у теплиці. Датчик DHT22 відстежує повітря, а занурені електроди вимірюють вологість ґрунту в реальному часі. Алгоритм автоматично вмикає полив лише тоді, коли земля дійсно пересихає, запобігаючи гниттю коренів.",
+        sensors: [
+          { ico: "🌡️", val: "24.5", unit: "°C", lbl: "ТЕМП. ПОВІТРЯ", glow: false },
+          { ico: "💦", val: "62", unit: "%", lbl: "ВОЛОГІСТЬ", glow: false },
+          { ico: "🌡️", val: "18.2", unit: "°C", lbl: "ТЕМП. ҐРУНТУ", glow: true },
+          { ico: "🪴", val: "45", unit: "%", lbl: "ВОЛОГ. ҐРУНТУ", glow: true }
+        ],
+        relays: [
+          { name: "Освітлення", ico: "💡", state: true },
+          { name: "Насос поливу", ico: "💧", state: false },
+          { name: "Вентилятор", ico: "🌀", state: true },
+          { name: "Обігрівач", ico: "🔥", state: false }
+        ]
+      },
+      hydro: {
+        title: "AquaLogic Hub", icon: "💧", color: "var(--cyan)", version: "v7.4 Hydro Edition",
+        desc: "Серце вашої гідропонної установки. Водозахищений датчик DS18B20 постійно моніторить температуру поживного розчину, запобігаючи розвитку патогенів. Інтервальні таймери керують аерацією та подачею води до коріння з точністю до хвилини.",
+        sensors: [
+          { ico: "🌡️", val: "22.0", unit: "°C", lbl: "ТЕМП. ПОВІТРЯ", glow: false },
+          { ico: "💦", val: "55", unit: "%", lbl: "ВОЛОГІСТЬ", glow: false },
+          { ico: "🌡️", val: "20.5", unit: "°C", lbl: "ТЕМП. РОЗЧИНУ", glow: true },
+          { ico: "🌊", val: "85", unit: "%", lbl: "РІВЕНЬ ВОДИ", glow: true }
+        ],
+        relays: [
+          { name: "Grow Light", ico: "💡", state: true },
+          { name: "Помпа", ico: "💧", state: true },
+          { name: "Аератор", ico: "🫧", state: true },
+          { name: "Охолодження", ico: "❄️", state: false }
+        ]
+      },
+      mushrooms: {
+        title: "MycoControl Node", icon: "🍄", color: "var(--purple)", version: "v7.4 Fungi Edition",
+        desc: "Установка для мікології вимагає екстремальної вологості та свіжого повітря. Контролер керує ультразвуковим туманоутворювачем для підтримки вологості 90%+ та автоматично витягує надлишок CO2 за таймерами.",
+        sensors: [
+          { ico: "🌡️", val: "16.8", unit: "°C", lbl: "ТЕМП. КАМЕРИ", glow: false },
+          { ico: "💦", val: "95", unit: "%", lbl: "ВОЛОГІСТЬ", glow: true },
+          { ico: "💨", val: "750", unit: "ppm", lbl: "РІВЕНЬ CO2", glow: true },
+          { ico: "☀️", val: "10", unit: "%", lbl: "ОСВІТЛЕНІСТЬ", glow: false }
+        ],
+        relays: [
+          { name: "Генератор туману", ico: "🌫️", state: true },
+          { name: "Витяжка СО2", ico: "🌀", state: false },
+          { name: "Приплив повітря", ico: "💨", state: false },
+          { name: "Світло (Холодне)", ico: "💡", state: true }
+        ]
+      },
+      quail: {
+        title: "AvianCare Core", icon: "🐣", color: "var(--orange)", version: "v7.4 Brooder Edition",
+        desc: "Створено для інкубаторів та брудерів. Система гарантує безперебійний обігрів керамічними або інфрачервоними лампами. Розклади RTC імітують природний сонячний цикл для птахів, а вентиляція запобігає задусі.",
+        sensors: [
+          { ico: "🌡️", val: "35.5", unit: "°C", lbl: "ТЕМП. БРУДЕРА", glow: true },
+          { ico: "💦", val: "45", unit: "%", lbl: "ВОЛОГІСТЬ", glow: false },
+          { ico: "🌡️", val: "32.0", unit: "°C", lbl: "ТЕМП. ПІДЛОГИ", glow: false },
+          { ico: "☀️", val: "80", unit: "%", lbl: "ДЕННЕ СВІТЛО", glow: true }
+        ],
+        relays: [
+          { name: "ІЧ Обігрів", ico: "🔥", state: true },
+          { name: "Основне світло", ico: "💡", state: true },
+          { name: "Вентиляція", ico: "🌀", state: false },
+          { name: "Автогодівниця", ico: "⚙️", state: false }
+        ]
+      },
+      power: {
+        title: "PowerNode Matrix", icon: "⚡", color: "var(--red)", version: "v7.4 Power Edition",
+        desc: "Базовий хаб для керування силовими приладами. Перетворює будь-яке обладнання на 'розумне'. Дозволяє створювати складні розклади на тиждень вперед та моніторить спожиту електроенергію для кожної розетки окремо.",
+        sensors: [
+          { ico: "⚡", val: "1450", unit: "Вт", lbl: "ПОТУЖНІСТЬ", glow: true },
+          { ico: "🔌", val: "225", unit: "В", lbl: "НАПРУГА МЕРЕЖІ", glow: false },
+          { ico: "📈", val: "6.4", unit: "А", lbl: "СТРУМ", glow: false },
+          { ico: "🔋", val: "2.8", unit: "кВт", lbl: "СПОЖИТО ЗА ДЕНЬ", glow: true }
+        ],
+        relays: [
+          { name: "Розетка 1", ico: "🔌", state: true },
+          { name: "Розетка 2", ico: "🔌", state: true },
+          { name: "Розетка 3", ico: "🔌", state: false },
+          { name: "Розетка 4", ico: "🔌", state: false }
+        ]
+      }
+    };
+
+    const modal = document.getElementById('modalOverlay');
+    const content = document.getElementById('modalContent');
+
+    function openModal(projectId) {
+      const data = projectData[projectId];
+      if(!data) return;
+
+      // Встановлюємо колір для вікна
+      content.style.setProperty('--acc', data.color);
+
+      // Шапка вікна
+      document.getElementById('m-header').innerHTML = `
+        <div class="m-title"><span style="color:var(--acc)">${data.icon}</span> ${data.title}</div>
+        <div class="m-sub">SYSTEM: ${data.version} | ОНЛАЙН</div>
+      `;
+
+      // Генерація сенсорів
+      let sHtml = '';
+      data.sensors.forEach(s => {
+        const glowClass = s.glow ? ' glow' : '';
+        sHtml += `
+          <div class="sc">
+            <div><div class="sico">${s.ico}</div><div class="sval${glowClass}">${s.val}<span class="sunit">${s.unit}</span></div></div>
+            <div class="slbl">${s.lbl}</div>
+          </div>
+        `;
+      });
+      document.getElementById('m-sensors').innerHTML = sHtml;
+
+      // Генерація реле
+      let rHtml = '';
+      data.relays.forEach((r, i) => {
+        const checked = r.state ? 'checked' : '';
+        const statusClass = r.state ? 'on' : '';
+        const statusText = r.state ? 'УВІМКНЕНО' : 'ВИМКНЕНО';
+        rHtml += `
+          <div class="rc">
+            <div style="font-size:24px;">${r.ico}</div>
+            <div class="rname">${r.name}<div class="rstatus ${statusClass}" id="rs-${i}">${statusText}</div></div>
+            <label class="tog"><input type="checkbox" ${checked} onchange="toggleRelay(this, ${i})"><span class="tsl"></span></label>
+          </div>
+        `;
+      });
+      document.getElementById('m-relays').innerHTML = rHtml;
+
+      // Опис
+      document.getElementById('m-desc-text').innerText = data.desc;
+
+      // Показуємо модалку
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden'; // Заборона скролу сайту під вікном
+    }
+
+    function closeModal(event, force = false) {
+      // Закриваємо, якщо клік був по затемненому фону або по кнопці "Х"
+      if (force || event.target === modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = ''; // Повертаємо скрол
+      }
+    }
+
+    // Логіка для тумблерів всередині модалки
+    function toggleRelay(checkbox, index) {
+      const statusDiv = document.getElementById(`rs-${index}`);
+      if(checkbox.checked) {
+        statusDiv.innerText = "УВІМКНЕНО";
+        statusDiv.classList.add('on');
+      } else {
+        statusDiv.innerText = "ВИМКНЕНО";
+        statusDiv.classList.remove('on');
+      }
+    }
+  </script>
+</body>
+</html>
